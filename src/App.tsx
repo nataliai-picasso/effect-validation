@@ -1,21 +1,125 @@
 import React, { useState, ChangeEvent } from 'react';
 import { Effect, Schema } from 'effect';
 import { DataItemsSchema } from './schemas/data.schema';
+import { CssPropertyItemSchema, CssCustomPropertyItemSchema } from './schemas/css-property.schema';
+import { ElementStateSchema } from './schemas/state.schema';
 import './App.scss';
 
 function App(): JSX.Element {
   const [inputValue, setInputValue] = useState<string>('');
   const [outputValue, setOutputValue] = useState<string>('');
 
-  const validateJson = (jsonString: string): Effect.Effect<unknown, string, never> => {
+  const validateFieldWithSchema = (fieldValue: unknown, fieldName: string): Effect.Effect<unknown, string, never> => {
+    return Effect.try({
+      try: () => {
+        switch (fieldName) {
+          case 'data':
+            return Schema.decodeUnknownSync(DataItemsSchema)(fieldValue);
+          case 'cssProperties':
+            return Schema.decodeUnknownSync(Schema.Record({
+              key: Schema.String,
+              value: CssPropertyItemSchema
+            }))(fieldValue);
+          case 'cssCustomProperties':
+            return Schema.decodeUnknownSync(Schema.Record({
+              key: Schema.String,
+              value: CssCustomPropertyItemSchema
+            }))(fieldValue);
+          case 'state':
+            return Schema.decodeUnknownSync(Schema.Record({
+              key: Schema.String,
+              value: ElementStateSchema
+            }))(fieldValue);
+          default:
+            throw new Error(`Unknown field type: ${fieldName}`);
+        }
+      },
+      catch: (error) => {
+        return `Validation Error for field '${fieldName}': ${error}`;
+      }
+    });
+  };
+
+  const findEditorElement = (obj: unknown): unknown | null => {
+    if (!obj || typeof obj !== 'object') {
+      return null;
+    }
+    
+    const objRecord = obj as Record<string, unknown>;
+    
+    // Check if current object has editorElement
+    if ('editorElement' in objRecord) {
+      return objRecord.editorElement;
+    }
+    
+    // Recursively search in nested objects and arrays
+    for (const value of Object.values(objRecord)) {
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          const found = findEditorElement(item);
+          if (found) return found;
+        }
+      } else if (value && typeof value === 'object') {
+        const found = findEditorElement(value);
+        if (found) return found;
+      }
+    }
+    
+    return null;
+  };
+
+  const validateJson = (jsonString: string): Effect.Effect<Record<string, unknown>, string, never> => {
     return Effect.try({
       try: () => {
         // First, parse the JSON
         const parsed = JSON.parse(jsonString);
         
-        // Then validate against Wix DataItems schema (your data is already a record of DataItems)
-        const result = Schema.decodeUnknownSync(DataItemsSchema)(parsed);
-        return result;
+        // Try to find editorElement anywhere in the structure
+        const editorElement = findEditorElement(parsed);
+        
+        if (editorElement && typeof editorElement === 'object') {
+          const validationResults: Record<string, unknown> = {};
+          const validationErrors: string[] = [];
+          
+          // Only validate known fields, ignore others
+          const knownFields = ['data', 'cssProperties', 'cssCustomProperties', 'state'];
+          
+          for (const [key, value] of Object.entries(editorElement)) {
+            if (knownFields.includes(key)) {
+              const fieldValidation = validateFieldWithSchema(value, key);
+              
+              const fieldResult = Effect.runSync(
+                Effect.match(fieldValidation, {
+                  onFailure: (error) => {
+                    validationErrors.push(error);
+                    return null;
+                  },
+                  onSuccess: (result) => result
+                })
+              );
+              
+              if (fieldResult !== null) {
+                validationResults[key] = fieldResult;
+              }
+            }
+            // Unknown fields are ignored completely
+          }
+          
+          if (validationErrors.length > 0) {
+            throw new Error(validationErrors.join('; '));
+          }
+          
+          return {
+            editorElement: validationResults,
+            originalStructure: parsed
+          };
+        } else if (editorElement !== null) {
+          throw new Error('editorElement field must be an object');
+        } else {
+          // Fallback to original DataItems validation if no editorElement found
+          const result = Schema.decodeUnknownSync(DataItemsSchema)(parsed);
+          return result;
+        }
       },
       catch: (error) => {
         if (error instanceof SyntaxError) {
@@ -76,7 +180,7 @@ function App(): JSX.Element {
             value={inputValue}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder='Enter Wix DataItems JSON to validate (see schema example below)'
+            placeholder='Enter JSON with "editorElement" structure (nested or top-level) or Wix DataItems to validate (see schema examples below)'
           />
           <div className="button-container">
             <button 
@@ -87,26 +191,6 @@ function App(): JSX.Element {
               Validate JSON
             </button>
             <span className="shortcut-hint">or press Ctrl+Enter (⌘+Enter on Mac)</span>
-          </div>
-          <div className="schema-info">
-            <h3>Expected Schema (Wix DataItems):</h3>
-            <pre>{`{
-  "link": {
-    "dataType": "link",
-    "displayName": "Link",
-    "link": {
-      "linkTypes": ["pageLink", "externalLink", ...]
-    }
-  },
-  "label": {
-    "dataType": "text", 
-    "displayName": "Label",
-    "defaultValue": "Example Text",
-    "text": {
-      "maxLength": 1200
-    }
-  }
-}`}</pre>
           </div>
         </div>
         <div className="output-section">

@@ -1,0 +1,135 @@
+{
+  "components": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "appId": "46eeda42-3d70-48ce-9ba3-3bf3f176e9f7",
+      "type": "EDITOR_REACT_COMPONENT",
+      "createdBy": "UNKNOWN",
+      "version": 1,
+      "data": {
+        "editorReactComponent": {
+          "type": "ExampleComponent",
+          "description": "A comprehensive example component manifest with all possible properties",
+          "editorElement": {
+            "selector": ".example-component",
+            "displayName": "Example Component",
+            "archetype": "Button",
+            "cssProperties": {
+              "background": {
+                "defaultValue": "transparent"
+              }
+            },
+            "cssCustomProperties": {
+              "content-horizontal-alignment": {
+                "cssPropertyType": "justifyContent",
+                "displayName": "Alignment",
+                "defaultValue": "center"
+              }
+            },
+            "data": {
+              "link": {
+                "dataType": "link",
+                "displayName": "Link",
+                "link": {
+                  "linkTypes": [
+                    "pageLink"
+                  ]
+                }
+              },
+              "label": {
+                "dataType": "text",
+                "displayName": "Label",
+                "defaultValue": "Example Text",
+                "text": {
+                  "maxLength": 1200
+                }
+              },
+              "items": {
+                "dataType": "arrayItems",
+                "displayName": "Items",
+                "arrayItems": {
+                  "data": {
+                    "items": {
+                      "name": {
+                        "dataType": "text",
+                        "displayName": "Item Name",
+                        "text": {}
+                      },
+                      "content": {
+                        "dataType": "container",
+                        "displayName": "Item Content",
+                        "container": {
+                          "selector": ".item-content",
+                          "containerType": "simple",
+                          "simple": {}
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "containerContent": {
+                "dataType": "container",
+                "displayName": "Container Content",
+                "container": {
+                  "selector": ".container-content",
+                  "containerType": "simple",
+                  "simple": {}
+                }
+              },
+              "componentConsentPolicy": {
+                "dataType": "textEnum",
+                "displayName": "Consent Policy",
+                "defaultValue": "essential",
+                "textEnum": {
+                  "options": [
+                    {
+                      "value": "essential",
+                      "displayName": "Essential"
+                    },
+                    {
+                      "value": "functional",
+                      "displayName": "Functional"
+                    }
+                  ]
+                }
+              }
+            },
+            "customActions": {
+              "format": {
+                "displayName": "Format",
+                "execution": {
+                  "actionType": "panel",
+                  "panel": {
+                    "panelType": "panelId",
+                    "panelId": "550e8400-e29b-41d4-a716-446655440002"
+                  }
+                }
+              }
+            },
+            "states": {
+              "regular": {
+                "displayName": "Regular"
+              }
+            },
+            "displayFilters": {
+              "data": {
+                "hide": ["internalData", "debugInfo"],
+                "show": ["publicData"]
+              }
+            }
+          },
+          "resources": {
+            "client": {
+              "componentUrl": "https://static.parastorage.com/services/example-component/1.0.0/component.bundle.min.js",
+              "serviceDependencies": [
+                "@wix/viewer-service-consent-policy"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}
+
