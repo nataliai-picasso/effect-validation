@@ -1,0 +1,47 @@
+{
+  "link": {
+    "dataType": "link",
+    "displayName": "Link",
+    "link": {
+      "linkTypes": [
+        "pageLink"
+      ]
+    }
+  },
+  "label": {
+    "dataType": "text",
+    "displayName": "Label",
+    "defaultValue": "Example Text",
+    "text": {
+      "maxLength": 1200
+    }
+  }
+}
+
+
+{ 
+  "items": {
+    "dataType": "arrayItems",
+    "displayName": "Items",
+    "arrayItems": {
+      "data": {
+        "items": {
+          "name": {
+            "dataType": "text",
+            "displayName": "Item Name",
+            "text": {}
+          },
+          "content": {
+            "dataType": "container",
+            "displayName": "Item Content",
+            "container": {
+              "selector": ".item-content",
+              "containerType": "simple",
+              "simple": {}
+            }
+          }
+        }
+      }
+    }
+  }
+}

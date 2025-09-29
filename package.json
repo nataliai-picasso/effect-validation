@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@effect/schema": "^0.75.5",
+    "@wix/ambassador-devcenter-v1-component-type-data": "^1.0.258",
     "effect": "^3.17.14",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

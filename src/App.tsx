@@ -1,13 +1,7 @@
 import React, { useState, ChangeEvent } from 'react';
 import { Effect, Schema } from 'effect';
+import { DataItemsSchema } from './schemas/data.schema';
 import './App.scss';
-
-// Define a sample schema for JSON validation
-const UserSchema = Schema.Struct({
-  name: Schema.String,
-  age: Schema.Number,
-  email: Schema.String.pipe(Schema.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))
-});
 
 function App(): JSX.Element {
   const [inputValue, setInputValue] = useState<string>('');
@@ -19,8 +13,8 @@ function App(): JSX.Element {
         // First, parse the JSON
         const parsed = JSON.parse(jsonString);
         
-        // Then validate against schema
-        const result = Schema.decodeUnknownSync(UserSchema)(parsed);
+        // Then validate against Wix DataItems schema (your data is already a record of DataItems)
+        const result = Schema.decodeUnknownSync(DataItemsSchema)(parsed);
         return result;
       },
       catch: (error) => {
@@ -82,7 +76,7 @@ function App(): JSX.Element {
             value={inputValue}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder='Enter JSON to validate (e.g., {"name": "John", "age": 30, "email": "john@example.com"})'
+            placeholder='Enter Wix DataItems JSON to validate (see schema example below)'
           />
           <div className="button-container">
             <button 
@@ -95,11 +89,23 @@ function App(): JSX.Element {
             <span className="shortcut-hint">or press Ctrl+Enter (⌘+Enter on Mac)</span>
           </div>
           <div className="schema-info">
-            <h3>Expected Schema:</h3>
+            <h3>Expected Schema (Wix DataItems):</h3>
             <pre>{`{
-  "name": string,
-  "age": number,
-  "email": string (valid email format)
+  "link": {
+    "dataType": "link",
+    "displayName": "Link",
+    "link": {
+      "linkTypes": ["pageLink", "externalLink", ...]
+    }
+  },
+  "label": {
+    "dataType": "text", 
+    "displayName": "Label",
+    "defaultValue": "Example Text",
+    "text": {
+      "maxLength": 1200
+    }
+  }
 }`}</pre>
           </div>
         </div>
