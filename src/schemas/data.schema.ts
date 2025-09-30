@@ -206,7 +206,22 @@ export const ArrayItemsSchema = Schema.Struct({
   data: Schema.optional(Schema.Record({
     key: Schema.String,
     value: Schema.Unknown // Allow any nested structure for now
-  })),
+  }).pipe(
+    Schema.filter((record) => Object.keys(record).length > 0, {
+      message: () => "Data object cannot be empty"
+    }),
+    Schema.filter((record) => {
+      // Check that each value in the record is not an empty object
+      return Object.values(record).every(value => {
+        if (value && typeof value === 'object' && !Array.isArray(value)) {
+          return Object.keys(value).length > 0;
+        }
+        return true; // Non-objects are allowed
+      });
+    }, {
+      message: () => "Items under arrayItems/data cannot be empty objects"
+    })
+  )),
   dataItem: Schema.optional(Schema.Unknown), // Allow any structure for single items
   maxSize: Schema.optional(Schema.Number)
 });
@@ -225,7 +240,7 @@ export const DataItemSchema = Schema.Struct({
   a11y: Schema.optional(A11ySchema),
   link: Schema.optional(LinkSchema),
   schema: Schema.optional(Schema.Unknown), // deprecated - google.protobuf.Struct
-  arrayItems: Schema.optional(ArrayItemsSchema), // ✅ Added back with limited validation!
+  arrayItems: Schema.optional(ArrayItemsSchema), // Added back with limited validation!
   container: Schema.optional(ReactElementContainerSchema),
   richText: Schema.optional(RichTextSchema),
   image: Schema.optional(ImageSchema),
@@ -237,7 +252,9 @@ export const DataItemSchema = Schema.Struct({
 export const DataItemsSchema = Schema.Record({
   key: Schema.String,
   value: DataItemSchema
-});
+}).pipe(Schema.filter((record) => Object.keys(record).length > 0, {
+  message: () => "Data object cannot be empty"
+}));
 
 // Type inference
 export type DataType = Schema.Schema.Type<typeof DataTypeSchema>;

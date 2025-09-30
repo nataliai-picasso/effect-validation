@@ -320,6 +320,21 @@ export const CssPropertyItemDefinitionOverridesSchema = Schema.Struct({
   }))
 });
 
+// CSS Properties Record Schemas
+export const CssPropertiesSchema = Schema.Record({
+  key: Schema.String,
+  value: CssPropertyItemSchema
+}).pipe(Schema.filter((record) => Object.keys(record).length > 0, {
+  message: () => "cssProperties object cannot be empty"
+}));
+
+export const CssCustomPropertiesSchema = Schema.Record({
+  key: Schema.String,
+  value: CssCustomPropertyItemSchema
+}).pipe(Schema.filter((record) => Object.keys(record).length > 0, {
+  message: () => "cssCustomProperties object cannot be empty"
+}));
+
 // Type inference
 export type CssDataType = Schema.Schema.Type<typeof CssDataTypeSchema>;
 export type CssPropertyType = Schema.Schema.Type<typeof CssPropertyTypeSchema>;
@@ -345,3 +360,5 @@ export type CssPropertyItem = Schema.Schema.Type<typeof CssPropertyItemSchema>;
 export type CssCustomPropertyItem = Schema.Schema.Type<typeof CssCustomPropertyItemSchema>;
 export type CssPropertyItemDefaults = Schema.Schema.Type<typeof CssPropertyItemDefaultsSchema>;
 export type CssPropertyItemDefinitionOverrides = Schema.Schema.Type<typeof CssPropertyItemDefinitionOverridesSchema>;
+export type CssProperties = Schema.Schema.Type<typeof CssPropertiesSchema>;
+export type CssCustomProperties = Schema.Schema.Type<typeof CssCustomPropertiesSchema>;

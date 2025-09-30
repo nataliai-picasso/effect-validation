@@ -1,8 +1,8 @@
 import React, { useState, ChangeEvent } from 'react';
 import { Effect, Schema } from 'effect';
 import { DataItemsSchema } from './schemas/data.schema';
-import { CssPropertyItemSchema, CssCustomPropertyItemSchema } from './schemas/css-property.schema';
-import { ElementStateSchema } from './schemas/state.schema';
+import { CssPropertiesSchema, CssCustomPropertiesSchema } from './schemas/css-property.schema';
+import { StateSchema } from './schemas/state.schema';
 import './App.scss';
 
 function App(): JSX.Element {
@@ -16,20 +16,11 @@ function App(): JSX.Element {
           case 'data':
             return Schema.decodeUnknownSync(DataItemsSchema)(fieldValue);
           case 'cssProperties':
-            return Schema.decodeUnknownSync(Schema.Record({
-              key: Schema.String,
-              value: CssPropertyItemSchema
-            }))(fieldValue);
+            return Schema.decodeUnknownSync(CssPropertiesSchema)(fieldValue);
           case 'cssCustomProperties':
-            return Schema.decodeUnknownSync(Schema.Record({
-              key: Schema.String,
-              value: CssCustomPropertyItemSchema
-            }))(fieldValue);
+            return Schema.decodeUnknownSync(CssCustomPropertiesSchema)(fieldValue);
           case 'state':
-            return Schema.decodeUnknownSync(Schema.Record({
-              key: Schema.String,
-              value: ElementStateSchema
-            }))(fieldValue);
+            return Schema.decodeUnknownSync(StateSchema)(fieldValue);
           default:
             throw new Error(`Unknown field type: ${fieldName}`);
         }

@@ -44,7 +44,7 @@
                   "maxLength": 1200
                 }
               },
-              "items": {
+              "locations": {
                 "dataType": "arrayItems",
                 "displayName": "Items",
                 "arrayItems": {
