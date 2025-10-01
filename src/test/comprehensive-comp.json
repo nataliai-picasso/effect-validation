@@ -16,7 +16,8 @@
             "archetype": "Button",
             "cssProperties": {
               "background": {
-                "defaultValue": "transparent"
+                "defaultValue": "transparent",
+                "statesDefaultValues": {}
               }
             },
             "cssCustomProperties": {
@@ -109,7 +110,8 @@
             },
             "states": {
               "regular": {
-                "displayName": "Regular"
+                "displayName": "Regular",
+                "props": {}
               }
             },
             "displayFilters": {

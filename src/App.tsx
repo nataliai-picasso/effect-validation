@@ -2,7 +2,7 @@ import React, { useState, ChangeEvent } from 'react';
 import { Effect, Schema } from 'effect';
 import { DataItemsSchema } from './schemas/data.schema';
 import { CssPropertiesSchema, CssCustomPropertiesSchema } from './schemas/css-property.schema';
-import { StateSchema } from './schemas/state.schema';
+import { ElementStatePropsSchema } from './schemas/state.schema';
 import './App.scss';
 
 function App(): JSX.Element {
@@ -19,14 +19,14 @@ function App(): JSX.Element {
             return Schema.decodeUnknownSync(CssPropertiesSchema)(fieldValue);
           case 'cssCustomProperties':
             return Schema.decodeUnknownSync(CssCustomPropertiesSchema)(fieldValue);
-          case 'state':
-            return Schema.decodeUnknownSync(StateSchema)(fieldValue);
+          case 'states':
+            return Schema.decodeUnknownSync(ElementStatePropsSchema)(fieldValue);
           default:
             throw new Error(`Unknown field type: ${fieldName}`);
         }
       },
       catch: (error) => {
-        return `Validation Error for field '${fieldName}': ${error}`;
+        return error;
       }
     });
   };
@@ -73,7 +73,7 @@ function App(): JSX.Element {
           const validationErrors: string[] = [];
           
           // Only validate known fields, ignore others
-          const knownFields = ['data', 'cssProperties', 'cssCustomProperties', 'state'];
+          const knownFields = ['data', 'cssProperties', 'cssCustomProperties', 'states'];
           
           for (const [key, value] of Object.entries(editorElement)) {
             if (knownFields.includes(key)) {
@@ -116,7 +116,7 @@ function App(): JSX.Element {
         if (error instanceof SyntaxError) {
           return `JSON Parse Error: ${error.message}`;
         }
-        return `Validation Error: ${error}`;
+        return error;
       }
     });
   };
