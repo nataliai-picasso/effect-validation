@@ -1,8 +1,8 @@
-import React, { useState, ChangeEvent } from 'react';
-import { Effect, Schema } from 'effect';
-import { DataItemsSchema } from './schemas/data.schema';
-import { CssPropertiesSchema, CssCustomPropertiesSchema } from './schemas/css-property.schema';
-import { ElementStatePropsSchema } from './schemas/state.schema';
+import { useState, ChangeEvent } from 'react';
+import { Schema } from 'effect';
+import { EditorElementCss_propertiesSchema, EditorElementCss_custom_propertiesSchema } from './proto-based-schemas/editor_element.schema';
+import { StatesSchema } from './proto-based-schemas/state.schema';
+import { DataSchema } from './proto-based-schemas/data.schema';
 import { DisplayFiltersSchema } from './schemas/display-filters.schema';
 import './App.scss';
 
@@ -10,53 +10,31 @@ function App(): JSX.Element {
   const [inputValue, setInputValue] = useState<string>('');
   const [outputValue, setOutputValue] = useState<string>('');
 
-  const validateFieldWithSchema = (fieldValue: unknown, fieldName: string): Effect.Effect<unknown, string, never> => {
-    return Effect.try({
-      try: () => {
-        switch (fieldName) {
-          case 'data':
-            return Schema.decodeUnknownSync(DataItemsSchema)(fieldValue);
-          case 'cssProperties':
-            return Schema.decodeUnknownSync(CssPropertiesSchema)(fieldValue);
-          case 'cssCustomProperties':
-            return Schema.decodeUnknownSync(CssCustomPropertiesSchema)(fieldValue);
-          case 'states':
-            return Schema.decodeUnknownSync(ElementStatePropsSchema)(fieldValue);
-          case 'displayFilters':
-            return Schema.decodeUnknownSync(DisplayFiltersSchema)(fieldValue);
-          default:
-            throw new Error(`Unknown field type: ${fieldName}`);
-        }
-      },
-      catch: (error) => {
-        return String(error);
-      }
-    });
+  const validateFieldWithSchema = (fieldValue: unknown, fieldName: string): unknown => {
+    console.log("fieldName", fieldName);
+    console.log("fieldValue", fieldValue);
+    switch (fieldName) {
+      case 'data':
+        return Schema.decodeUnknownSync(DataSchema)(fieldValue);
+      case 'cssProperties':
+        return Schema.decodeUnknownSync(EditorElementCss_propertiesSchema)(fieldValue);
+      case 'cssCustomProperties':
+        return Schema.decodeUnknownSync(EditorElementCss_custom_propertiesSchema)(fieldValue);
+      case 'states':
+        return Schema.decodeUnknownSync(StatesSchema)(fieldValue);
+      case 'displayFilters':
+        return Schema.decodeUnknownSync(DisplayFiltersSchema)(fieldValue);
+      default:
+        throw new Error(`Unknown field type: ${fieldName}`);
+    }
   };
 
   const validateFieldWithSchemaAsync = async (fieldValue: unknown, fieldName: string): Promise<{ success: true; result: unknown } | { success: false; error: string }> => {
-    const validation = validateFieldWithSchema(fieldValue, fieldName);
-    
     try {
-      const result = Effect.runSync(validation);
+      const result = validateFieldWithSchema(fieldValue, fieldName);
       return { success: true, result };
     } catch (error) {
-      // Extract the actual error message from Effect's FiberFailure
-      let errorMessage = String(error);
-      
-      // Remove FiberFailure wrapper if present
-      if (errorMessage.includes('(FiberFailure)')) {
-        // Extract the actual error message after "(FiberFailure) Error: Error: "
-        const match = errorMessage.match(/\(FiberFailure\) Error: Error: (.+)/);
-        if (match && match[1]) {
-          errorMessage = match[1];
-        } else {
-          // Fallback: remove the FiberFailure prefix
-          errorMessage = errorMessage.replace(/\(FiberFailure\) Error: /, '');
-        }
-      }
-      
-      return { success: false, error: errorMessage };
+      return { success: false, error: String(error) };
     }
   };
 
@@ -74,147 +52,66 @@ function App(): JSX.Element {
       return { fieldName, result };
     });
 
-    const validationResults = await Promise.allSettled(validationPromises);
-    
-    const validationResultsMap: Record<string, unknown> = {};
+    const settledResults = await Promise.allSettled(validationPromises);
+
+    const validationResults: Record<string, unknown> = {};
     const errors: Array<{ field: string; error: string }> = [];
 
-    validationResults.forEach((settledResult) => {
+    settledResults.forEach((settledResult) => {
       if (settledResult.status === 'fulfilled') {
         const { fieldName, result } = settledResult.value;
         if (result.success) {
-          validationResultsMap[fieldName] = result.result;
+          validationResults[fieldName] = result.result;
         } else {
           errors.push({ field: fieldName, error: result.error });
         }
       } else {
-        // This shouldn't happen with our current implementation, but handle it just in case
         errors.push({ field: 'unknown', error: settledResult.reason });
       }
     });
 
-    return { validationResults: validationResultsMap, errors };
+    return { validationResults, errors };
   };
 
-  const findEditorElement = (obj: unknown): unknown | null => {
-    if (!obj || typeof obj !== 'object') {
-      return null;
-    }
-    
-    const objRecord = obj as Record<string, unknown>;
-    
-    // Check if current object has editorElement
-    if ('editorElement' in objRecord) {
-      return objRecord.editorElement;
-    }
-    
-    // Recursively search in nested objects and arrays
-    for (const value of Object.values(objRecord)) {
-      if (Array.isArray(value)) {
-        for (const item of value) {
-          const found = findEditorElement(item);
-          if (found) return found;
-        }
-      } else if (value && typeof value === 'object') {
-        const found = findEditorElement(value);
-        if (found) return found;
-      }
-    }
-    
-    return null;
+  const handleInputChange = (event: ChangeEvent<HTMLTextAreaElement>): void => {
+    setInputValue(event.target.value);
   };
 
-  const validateJson = async (jsonString: string): Promise<Record<string, unknown> | string> => {
+  const handleValidate = async (): Promise<void> => {
     try {
-      // First, parse the JSON
-      const parsed = JSON.parse(jsonString);
-      
-      // Try to find editorElement anywhere in the structure
-      const editorElement = findEditorElement(parsed);
-      
-      if (editorElement && typeof editorElement === 'object') {
-        // Use batch validation to collect all errors at once
-        const { validationResults, errors } = await validateFieldsBatch(editorElement as Record<string, unknown>);
-        
-        if (errors.length > 0) {
-          // Format all errors with field names for better clarity
-          const formattedErrors = errors.map(({ field, error }) => {
-            // If the error starts with "Field: .", replace it with the actual field name
-            if (error.startsWith('Field: .')) {
-              const pathAfterDot = error.substring(8); // Remove "Field: ."
-              return `Field: ${field}.${pathAfterDot}`;
-            }
-            return `Field '${field}': ${error}`;
-          }).join('; ');
-          return formattedErrors;
-        }
-        
-        return {
-          editorElement: validationResults,
-          originalStructure: parsed
-        };
-      } else if (editorElement !== null) {
-        return 'editorElement field must be an object';
+      console.log("inputValue", inputValue);
+      const parsed = JSON.parse(inputValue);
+      console.log("parsed", parsed);
+
+      const component = parsed.components?.[0];
+      if (!component) {
+        setOutputValue('Error: No component found in input');
+        return;
+      }
+
+      const editorElement = component.data?.editorReactComponent?.editorElement;
+      if (!editorElement) {
+        setOutputValue('Error: No editorElement found in component');
+        return;
+      }
+
+      // Batch validate all fields
+      const { validationResults, errors } = await validateFieldsBatch(editorElement);
+
+      if (errors.length > 0) {
+        const errorMessages = errors.map(({ field, error }) => `${field}: ${error}`).join('\n');
+        setOutputValue(`❌ Validation Errors:\n${errorMessages}`);
       } else {
-        // Fallback to original DataItems validation if no editorElement found
-        const result = Schema.decodeUnknownSync(DataItemsSchema)(parsed);
-        return result as Record<string, unknown>;
+        setOutputValue(`✅ Validation Success:\n${JSON.stringify(validationResults, null, 2)}`);
       }
     } catch (error) {
-      if (error instanceof SyntaxError) {
-        return `JSON Parse Error: ${error.message}`;
-      }
-      return String(error);
-    }
-  };
-
-  const performValidation = async (value: string): Promise<void> => {
-    if (value.trim() === '') {
-      setOutputValue('');
-      return;
-    }
-
-    try {
-      // Validate the JSON using async batch validation
-      const result = await validateJson(value);
-      
-      if (typeof result === 'string') {
-        // Result is an error string - format as a list
-        console.log("error", result);
-        const errorList = result.split('; ').map(error => `• ${error}`).join('\n');
-        setOutputValue(`❌ Validation Errors:\n${errorList}`);
+      console.log("error", error);
+      if (error instanceof Error) {
+        setOutputValue(`Error: ${error.message}`);
       } else {
-        // Result is a successful validation
-        console.log("result", result);
-        setOutputValue(`✅ Valid JSON:\n${JSON.stringify(result, null, 2)}`);
+        setOutputValue(`Error: ${String(error)}`);
       }
-    } catch (error) {
-      console.log("unexpected error", error);
-      setOutputValue(`❌ Unexpected error: ${error}`);
     }
-  };
-
-  const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>): void => {
-    const value = e.target.value;
-    setInputValue(value);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
-    // Trigger validation on Ctrl+Enter or Cmd+Enter (post)
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-      e.preventDefault();
-      performValidation(inputValue).catch((error) => {
-        console.log("validation error", error);
-        setOutputValue(`❌ Validation failed: ${error}`);
-      });
-    }
-  };
-
-  const handleValidateClick = (): void => {
-    performValidation(inputValue).catch((error) => {
-      console.log("validation error", error);
-      setOutputValue(`❌ Validation failed: ${error}`);
-    });
   };
 
   return (
@@ -226,13 +123,13 @@ function App(): JSX.Element {
             className="input-field"
             value={inputValue}
             onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
+            onKeyDown={handleValidate}
             placeholder='Enter JSON with "editorElement" structure (nested or top-level) or Wix DataItems to validate (see schema examples below)'
           />
           <div className="button-container">
             <button 
               className="validate-button"
-              onClick={handleValidateClick}
+              onClick={handleValidate}
               type="button"
             >
               Validate JSON

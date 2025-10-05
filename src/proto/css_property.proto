@@ -1,0 +1,166 @@
+// flynt-disable package-matches-structure
+syntax = "proto3";
+
+package com.wixpress.appservice.api;
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/struct.proto";
+import "wix/api/validations.proto";
+import "wix/api/annotations.proto";
+import "components_catalog_data/editor_react_component/css_property_types.proto";
+import "components_catalog_data/editor_react_component/media_manager_enums.proto";
+
+
+message CssPropertyItem {
+  // Will be used as displayName of this css-property-item
+  google.protobuf.StringValue display_name = 1 [(.wix.api.maxLength) = 100, (.wix.api.translatable) = {
+    type: SHORT_TEXT
+  }];
+  // The default value for the css-property-item when the component is in the "regular" state
+  google.protobuf.Value default_value = 2;
+  // The default values for the css-property-item when the component is in one of the defined states
+  map<string, google.protobuf.Value> states_default_values = 3;
+  // Reserved for future css-property fields, do not use these fields for extended type definitions
+  reserved 4, 5, 6, 7, 8, 9, 10;
+
+  oneof SelectedCssPropertyType {
+    // Additional options for css-property-types
+
+    // Additional options to refine the filter variable
+    Filter filter = 11;
+    // Additional options to refine the backdropFilter variable
+    BackdropFilter backdrop_filter = 12;
+    // Additional options to refine the display variable
+    Display display = 13;
+    // Additional options to refine the writingMode variable
+    WritingMode writing_mode = 14;
+    // Additional options to refine the background variable
+    Background background = 15;
+  }
+}
+
+message CssCustomPropertyItem {
+  // The type of the value this css-custom-property will store, can be either
+  // [CSS properties](https://developer.mozilla.org/en-US/docs/Web/CSS/Properties) or
+  // [CSS data types](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Values_and_Units/CSS_data_types) in Javascript naming format
+  CssPropertyEnum.CssPropertyType css_property_type = 1;
+  // Determines if this css-custom-property is deprecated (for internal use only)
+  google.protobuf.BoolValue deprecated = 2 [(wix.api.field_exposure) = INTERNAL];
+  // Will be used as displayName of this css-property-item
+  google.protobuf.StringValue display_name = 3 [(.wix.api.maxLength) = 100, (.wix.api.translatable) = {
+    type: SHORT_TEXT
+  }];
+  // The default value for the css-property-item when the component is in the "regular" state
+  google.protobuf.Value default_value = 4;
+  // The default values for the css-property-item when the component is in one of the defined states
+  map<string, google.protobuf.Value> states_default_values = 5;
+  // Reserved for future css-property fields, do not use these fields for extended type definitions
+  reserved 6, 7, 8, 9, 10;
+
+  oneof SelectedCssPropertyType {
+    // Additional options for css-property-types
+
+    // Additional options to refine the filter variable
+    Filter filter = 11;
+    // Additional options to refine the backdropFilter variable
+    BackdropFilter backdrop_filter = 12;
+    // Additional options to refine the display variable
+    Display display = 13;
+    // Additional options to refine the writingMode variable
+    WritingMode writing_mode = 14;
+    // Additional options to refine the background variable
+    Background background = 15;
+
+    // Additional options for css-data-types
+
+    // Additional options to refine the customEnum item
+    CustomPropertyEnum custom_enum = 16;
+    // Additional options to refine the number item
+    CssNumber number = 17;
+  }
+}
+
+message CssPropertyItemDefaults {
+  // The default value of this css-property-item
+  google.protobuf.Value default_value = 1;
+  // The default values for the css-property-item when the component is in one of the defined states
+  map<string, google.protobuf.Value> states_default_values = 2;
+}
+
+message CssPropertyItemDefinitionOverrides {
+  // Will be used as displayName of this css-property-item
+  google.protobuf.StringValue display_name = 1 [(.wix.api.maxLength) = 100, (.wix.api.translatable) = {
+    type: SHORT_TEXT
+  }];
+  // Disables the ability to edit this css-property-item
+  google.protobuf.BoolValue disable_editing = 2;
+  // The default value for the css-property-item when the component is in the "regular" state
+  google.protobuf.Value default_value = 3;
+  // The default values for the css-property-item when the component is in one of the defined states
+  map<string, google.protobuf.Value> states_default_values = 4;
+  // Reserved for future css-property fields, do not use these fields for extended type definitions
+}
+
+// Definition of additional options for css-properties and css-data-types
+
+message Filter {
+  // List of filter functions in case of reducing the abilities exposed to the User
+  repeated FilterFunctionEnum.FilterFunction filter_functions = 1 [(wix.api.maxSize) = 100];
+}
+
+message BackdropFilter {
+  // List of filter functions in case of reducing the abilities exposed to the User
+  repeated FilterFunctionEnum.FilterFunction filter_functions = 1 [(wix.api.maxSize) = 100];
+}
+
+message CustomPropertyEnum {
+  // The type of the css-custom-property, used to define the type of the values allowed in the enum
+  CssPropertyEnum.CssPropertyType css_property_type = 1;
+  // The allowed value options for this custom enum
+  repeated CustomPropertyEnumOption options = 2 [(.wix.api.maxSize) = 100];
+}
+
+message CustomPropertyEnumOption {
+  // the enum value
+  string value = 1 [(.wix.api.maxLength) = 100];
+  // Will be used as displayName of this enum option
+  google.protobuf.StringValue display_name = 2 [(.wix.api.maxLength) = 100, (.wix.api.translatable) = {
+    type: SHORT_TEXT
+  }];
+  // the css-properties to apply when this enum value is selected [Internal use only]
+  repeated CustomPropertyEnumOptionStyle applied_styles = 3 [(.wix.api.maxSize) = 100, (.wix.api.field_exposure) = INTERNAL];
+}
+
+message CustomPropertyEnumOptionStyle {
+  // the css property
+  string property = 1 [(.wix.api.minLength) = 1, (.wix.api.maxLength) = 100];
+  // the css value
+  string value = 2 [(.wix.api.minLength) = 1, (.wix.api.maxLength) = 300];
+}
+
+message Display {
+  repeated DisplayValueEnum.DisplayValue display_values = 1 [(.wix.api.maxSize) = 20]; // list of display values in case we want to reduce the abilities exposed to the User
+}
+
+message WritingMode {
+  repeated WritingModeValueEnum.WritingModeValue writing_mode_values = 1 [(.wix.api.maxSize) = 20]; // list of writing-mode values in case we want to reduce the abilities exposed to the User
+}
+
+message Background {
+  // The background mode defines the type of background to be used
+  BackgroundMode.BackgroundModeEnum background_mode = 1 [(.wix.api.field_exposure) = INTERNAL];
+
+  oneof BackgroundMediaMode {
+    // The image media manager category to open media manager filtered by the component needs
+    MediaManagerEnum.ImageCategoryTypes image_category = 2;
+    // The Shape Divider media manager category to open media manager filtered by the component needs
+    MediaManagerEnum.VectorArtCategoryTypes vector_art_category = 3;
+  }
+}
+
+message CssNumber {
+  google.protobuf.FloatValue minimum = 1; // Indicates minimum value required for the number
+  google.protobuf.FloatValue maximum = 2; // Indicates maximum value allowed for the number
+  google.protobuf.FloatValue multiple_of = 3; // The multiplier for the number value
+}
+

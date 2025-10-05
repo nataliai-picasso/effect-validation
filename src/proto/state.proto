@@ -1,0 +1,47 @@
+// flynt-disable enum-value-upper-case
+// flynt-disable package-matches-structure
+
+syntax = "proto3";
+
+package com.wixpress.appservice.api;
+
+import "wix/api/validations.proto";
+import "wix/api/annotations.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/struct.proto";
+import "components_catalog_data/editor_react_component/display_filter.proto";
+
+message ElementState {
+  // Display name of this state
+  google.protobuf.StringValue display_name = 1 [(.wix.api.maxLength) = 100, (.wix.api.translatable) = {
+    type: SHORT_TEXT
+  }];
+  // The class-name to apply when this state is applied
+  google.protobuf.StringValue class_name = 2 [(.wix.api.maxLength) = 100];
+  // The pseudo-class to used to target this state in the browser
+  NativeStateTypeEnum.NativeStateType pseudo_class = 3;
+  // The state props to apply when this state is applied
+  map<string, google.protobuf.Value> props = 4;
+  
+  // Display filters for the state, used to define the visiblity of inner / ref elements, style items, data items and custom actions in the editor
+  // The state is the last item to affect the display, Element and Preset are before it
+  DisplayFilters display_filters = 5;
+}
+
+message NativeStateTypeEnum {
+  enum NativeStateType {
+    UNKNOWN_NativeStateType = 0;
+    hover = 1; // native browser "hover" state
+    focus = 2; // native browser "focus" state
+    disabled = 3; // native browser "disabled" state
+    invalid = 4; // native browser "invalid" state
+  }
+}
+
+message VisibleState {
+  // The key of the state that will trigger the visibility of this element
+  string state_key = 1 [(.wix.api.minLength) = 1, (.wix.api.maxLength) = 100];
+  // The path to the element that owns the relevant state to trigger, path pattern "/elementkey/elementkey"
+  string element_path = 2 [(.wix.api.minLength) = 1, (.wix.api.maxLength) = 500];
+}
+

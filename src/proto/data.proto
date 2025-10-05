@@ -1,0 +1,323 @@
+// flynt-disable enum-value-upper-case
+syntax = "proto3";
+
+package com.wixpress.appservice.api;
+
+import "wix/api/validations.proto";
+import "wix/api/annotations.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/wrappers.proto";
+import "components_catalog_data/editor_react_component/style.proto";
+import "components_catalog_data/editor_react_component/editor_element_layout.proto";
+import "components_catalog_data/editor_react_component/media_manager_enums.proto";
+
+message DataTypeEnum {
+  enum DataType {
+    UNKNOWN_DataType = 0;
+    text = 1; // A simple text value
+    textEnum = 2; // A list of predefined textual values to choose from
+    number = 3; // Any number
+    booleanValue = 4; // true / false value
+    a11y = 5; // An object containing the selected A11Y fields chosen
+    link = 6; // A Wix Link object type 
+    image = 7; // A Wix Image object type
+    video = 8; // A Wix Video object type
+    vectorArt = 9; // A Wix Sanitized Vector Art object
+    audio = 10; // A Wix Audio object
+    schema = 11 [deprecated = true]; // DEPRECATED - use the `data` dataType instead. A [JSON Schema definition](https://json-schema.org/specification) the developer understands in his code (useful for complex props). Some limitation may apply.
+    localDate = 12; // Local date output ISO-8601 extended local date format (YYYY-MM-DD)
+    localTime = 13; // Local time output ISO-8601 extended local time format (hh:mm[:ss][.sss])
+    localDateTime = 14; // Local Date Time output  ISO-8601 extended local date-time format (YYYY-MM-DDThh:mm[:ss][.sss])
+    webUrl = 15; // a URL with scheme http or https
+    email = 16; // standard email address according to [RFC 5321, section 4.1.2](https://datatracker.ietf.org/doc/html/rfc5321#section-4.1.2)
+    phone = 17; //  a validation format designed to match phone numbers with a variety of common characters, including digits (0-9), spaces, parentheses, plus sign, hyphens, and periods
+    hostname = 18; // hostname according to IANA
+    regex = 19; // A valid `regex` pattern supplied by the User
+    guid = 20; // A unique identifier
+    richText = 21; // a HTML text with css inline styling
+    container = 22; // A container place in the component that will be passed in as {children} or a function prop, depending on the case
+    arrayItems = 23; // An array type of data
+    direction = 24; // selected `direction` for the component according to (HTML `dir` attribute)[https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir]
+    menuItems = 25; // A list of menu-items
+    data = 26; // A complex data type that can be used to define a data structure, such as an object or a map
+  }
+}
+
+message DataItem {
+  // Defines the type of data we are configuring
+  DataTypeEnum.DataType data_type = 1;
+  // Display name of this data item
+  google.protobuf.StringValue display_name = 2 [(.wix.api.maxLength) = 100, (.wix.api.translatable) = {
+    type: SHORT_TEXT
+  }];
+  // The default value of this data item (only for display purposes).
+  google.protobuf.Value default_value = 11;
+
+  // Whether this data item is deprecated
+  bool deprecated = 12 [(wix.api.field_exposure) = INTERNAL];
+
+  // A different model definition for each one of the data-type options
+  oneof SelectedDataType {
+    Text text = 3; // An optional object to define limitations on the text input
+    TextEnum text_enum = 4; // A required list of options to supply to the users to choose from
+    Number number = 5; // An optional set of restrictions to apply to the number
+    A11y a11y = 6; //  A required list of types we want to user to be able to specify, empty means all possible A11Y values
+    Link link = 7; // A definition of what links should be supported 
+    google.protobuf.Struct schema = 8 [deprecated = true, (.wix.api.field_deprecated) = {
+      replaced_by: "data",
+      target_removal_date: "2025-09-30"
+    }]; // The [JSON Schema definition](https://json-schema.org/specification) the developer understands in his code (useful for complex props). Some limitation may apply
+    ArrayItems array_items = 9; // An array of a data type
+    ReactElementContainer container = 10; // A container in which to render another component
+    RichText rich_text = 13; // A definition of what rich text abilities should be supported
+    Image image = 14; // A definition of what images should be supported
+    Video video = 15; // A definition of what videos should be supported
+    VectorArt vector_art = 16; // A definition of what vector arts should be supported
+    DataItems data = 17; // An definition of a nested data-object
+  }
+}
+
+message DataItemOverrides {
+  // Disables the ability to edit this data-item
+  google.protobuf.BoolValue disable_editing = 1;
+  // Overrides the default value of this data-item
+  google.protobuf.Value default_value = 2;
+  // Overrides the display name of this data-item
+  google.protobuf.StringValue display_name = 4 [(.wix.api.maxLength) = 100, (.wix.api.translatable) = {
+    type: SHORT_TEXT
+  }];
+}
+
+message Text {
+  google.protobuf.Int32Value max_length = 1; // Indicates maximum length allowed for the text
+  google.protobuf.Int32Value min_length = 2; // Indicates minimum length required for the text
+  google.protobuf.StringValue regex_pattern = 3 [(.wix.api.maxLength) = 100, deprecated = true, (.wix.api.field_deprecated) = {
+    replaced_by: "pattern",
+    target_removal_date: "2026-06-30"
+  }]; // A regex pattern that the text must comply with
+  google.protobuf.StringValue pattern = 4 [(.wix.api.maxLength) = 100]; // A regex pattern that the text must comply with
+}
+
+message TextEnum {
+  message Option {
+    option (.wix.api.unique) = {field: "value"};
+    // actual text value for this item
+    string value = 1 [(.wix.api.maxLength) = 100];
+    // display name for this text item
+    string display_name = 2 [(.wix.api.maxLength) = 100, (.wix.api.translatable) = {
+      type: SHORT_TEXT
+    }];
+  }
+
+  repeated Option options = 1 [(wix.api.maxSize) = 100]; // list of valid enum items
+}
+
+message Number {
+  google.protobuf.FloatValue minimum = 1; // Indicates minimum value required for the number
+  google.protobuf.FloatValue maximum = 2; // Indicates maximum value allowed for the number
+  google.protobuf.FloatValue multiple_of = 3; // The multiplier for the number value
+}
+
+
+message A11yAttributesEnum {
+  enum A11yAttributes {
+    Unknown_AriaAttributes = 0;
+    tabIndex = 1 ; // The value used for tabIndex attribute
+    ariaLevel = 2; // The value used for aria-level
+    ariaExpanded = 3; // The value used for aria-expanded
+    ariaDisabled = 4; // The value used for aria-disabled
+    ariaAtomic = 5; // The value used for aria-atomic
+    ariaHidden = 6; // The value used for aria-hidden
+    ariaBusy = 7; // The value used for aria-busy
+    multiline = 8; // Indicates if should add Multiline instructions to aria-label
+    ariaAutocomplete = 9; // Indicates if should add Autocomplete instructions to aria-label
+    ariaPressed = 10; // The value used for aria-pressed
+    ariaHaspopup = 11; // The value used for aria-haspopup
+    ariaRelevant = 12; // The value used for aria-relevant
+    role = 13; // The value used for role attribute
+    ariaLive = 14; // The value used for aria-live
+    ariaCurrent = 15;  // The value used for aria-current
+    ariaLabel = 16; // The text used for aria-label
+    ariaRoledescription = 17; // The text used for aria-roledescription
+    ariaDescribedby = 18; // The value used for aria-describedby
+    ariaLabelledby = 19; // The value used for aria-labelledby
+    ariaErrormessage = 20; // The text used for aria-errormessage
+    ariaOwns = 21; // The text used for aria-owns
+    ariaControls = 22; // The text used for aria-controls
+    tag = 23; // The HTML tag to use for the element
+    ariaMultiline = 24; // The value used for aria-multiline
+    ariaInvalid = 25; // The value used for aria-invalid
+  }
+}
+
+message A11y {
+  repeated A11yAttributesEnum.A11yAttributes attributes = 1 [(wix.api.maxSize) = 100]; // A collection of attributes that will be stated in the manifest
+}
+
+message LinkTypeEnum {
+  enum LinkType {
+    UNKNOWN_LinkType = 0;
+    externalLink = 1; // A link to another website
+    anchorLink = 2; // A link to an item on the current page
+    emailLink = 3; // A valid email link (`mailto:example@example.com`)
+    phoneLink = 4; // A valid phone link (`phone:11111111111`) 
+    dynamicPageLink = 5; // A link to a page in Wix that needs to be selected dynamically
+    pageLink = 6; // A link to another page on the site
+    whatsAppLink = 7; // A link to open a whatsapp conversation
+    documentLink = 8; // A link to a PDF file hosted by Wix
+    popupLink = 9; // A link that opens a lightbox
+    addressLink = 10; // A link that directs the user to an address on google maps
+    edgeAnchorLinks = 11; // A link that scrolls to the top/bottom of the page
+    loginToWixLink = 12; // A link that directs the user to wix login dialog
+  }
+}
+
+message Link {
+  repeated LinkTypeEnum.LinkType link_types = 1 [(.wix.api.maxSize) = 12]; // A collection of possible link types that the component supports. Only one of the types will make it to the component after input.
+}
+
+message RichTextEnum {
+  enum RichTextAbilities {
+      reserved 7,12,13,14,18,22;
+      UNKNOWN_RichTextAbilities = 0;
+      font = 1; // selected theme font, also changing the html tag
+      fontFamily = 2; // font family of the text
+      fontSize = 3; // font size of the text
+      fontStyle = 4; // italic / normal
+      fontWeight = 5; // bold / normal / 100-900
+      textDecoration = 6; // underline / line-through
+      color = 8; // color of the text
+      backgroundColor = 9; // background color of the text
+      letterSpacing = 10; // letter spacing of the text
+      textAlign = 11; // left / center / right / justify
+      direction = 15; // rtl/ltr
+      marginStart = 16; // indent of the text
+      marginEnd = 17; // outdent of the text
+
+      //special data:
+      bulletedList = 19; //implemented with <ul>
+      numberedList = 20; // implemented with <ol>
+      seoTag = 21; // h1,h2,h3,h4,h5,h6,p,blockquote
+  }
+}
+
+// rich text data type allow manipulation of text with html & inline styles
+message RichText {
+  repeated RichTextEnum.RichTextAbilities abilities = 1 [(.wix.api.maxSize) = 22]; // A collection of possible rich text abilities that the component supports. Only one of the types will make it to the component after input.
+}
+
+message ContainerTypeEnum {
+  enum ContainerType {
+    UNKNOWN_CONTAINER_TYPE = 0; // An undefined container type, is invalid
+    simple = 1; // A simple container that can support adding and layouting elements in the editor
+    slot = 2; // A slot declared by a component in DEV Center that allows integrations with a Props API from the host
+    placeholder = 3; // A container to add elements targeting a specific product use case, exposed in DEV Center
+    template = 4; // A container that can be used to render a template multiple times
+ }
+}
+
+// A container is a place to add components to in the editor
+// There are a few different types of containers supported
+message ReactElementContainer {
+ // A DOM Selector that will allow us to target it in the editor
+ string selector = 1 [(.wix.api.minLength) = 2, (.wix.api.maxLength) = 100];
+ // The type of Container to be rendered
+ ContainerTypeEnum.ContainerType container_type = 2;
+ // Which type of component we expect here, can be none
+ oneof SelectedContainerType {
+    option (.wix.api.aligned_with_enum) = {
+      field: "container_type";
+      suffix: "";
+    };
+    // flynt-disable no-oneof-empty-markers
+    // A container element that will be passed in as children, it is composed in the editor
+    ContainerTypes.SimpleContainer simple = 3;
+    // A Slot for targeting slot implementors, gets the API implementation by the host (definition in DEV Center for both)
+    ContainerTypes.Slot slot = 4;
+    // Placeholder for components targeting a specific area (definition in DEV Center)
+    ContainerTypes.PlaceHolder placeholder = 5;
+  }
+}
+
+message ContainerTypes {
+
+    message SimpleContainer { 
+      // Layout configuration for the container, can be used to configure the editing of the container and the layout.
+      ContainerLayout layout = 1;
+      // Style configuration for the container, can be used to disable style properties, or change their display name.
+      ContainerStyleOverrides  style = 2;
+      // Behavior configuration for the container, can be used to disable selection of the container.
+      ContainerBehaviors behaviors = 3;
+      // An optional override of the display name of the container.
+      google.protobuf.StringValue display_name = 4 [(.wix.api.maxLength) = 50, (.wix.api.translatable) = {
+    type: SHORT_TEXT
+  }];
+    }
+
+    message Slot {
+       // The slot definition that this container should accept as defined in DEV Center
+       string slot_id = 1 [(.wix.api.format) = GUID];
+    }
+
+    message PlaceHolder {
+       // The placeholder definition that this container should accept as defined in DEV Center
+       string placeholder_id = 1[(.wix.api.format) = GUID];
+    }
+}
+
+message ContainerBehaviors {
+  // Whether the container should be selectable in the editor.
+  google.protobuf.BoolValue selectable = 1;
+}
+
+message ContainerLayout {
+  // Which direction the container can resize to. will be used to determine the resize handle in the editor, and the container layout.
+  ResizeDirectionEnum.ResizeDirection resize_direction = 1;
+}
+
+message ContainerStyleOverrides {
+  // The border style of the container, can be used to disable editing of the border, or change the display name.
+  StyleItemOverrides border = 1;
+  // The border radius style of the container, can be used to disable editing of the border radius, or change the display name.
+  StyleItemOverrides border_radius = 3;
+  // The shadow style of the container, can be used to disable editing of the shadow, or change the display name.
+  StyleItemOverrides shadow = 2;
+  // The background style of the container, can be used to disable editing of the background, or change the display name.
+  StyleItemOverrides background = 4;
+}
+
+message DataItems {
+  /**
+    For an array of complex object types
+    Each item in the array, will contain all this data structure
+  */
+  map<string, DataItem> items = 1;
+}
+
+// An array of data items or complex data types
+message ArrayItems {
+  oneof ArrayData {
+      // The definition of multiple data items in each item of the Array
+      DataItems data = 1;
+      // For a single data type in the array
+      DataItem data_item = 2;
+  }
+  // The maximum size of the Array (there will be a size limit in the Storage as well)
+  google.protobuf.Int32Value max_size = 3;
+}
+
+message Image {
+  // media manager categories to open media manager filtered by the component needs
+  MediaManagerEnum.ImageCategoryTypes category = 1;
+}
+
+message Video {
+  // media manager categories to open media manager filtered by the component needs
+  MediaManagerEnum.VideoCategoryTypes category = 1;
+}
+
+message VectorArt {
+  // media manager categories to open media manager filtered by the component needs
+  MediaManagerEnum.VectorArtCategoryTypes category = 1;
+}
+

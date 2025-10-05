@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package com.wixpress.appservice.api;
+
+import "wix/api/validations.proto";
+import "wix/api/annotations.proto";
+import "components_catalog_data/editor_react_component/style.proto";
+import "components_catalog_data/editor_react_component/data.proto";
+import "components_catalog_data/editor_react_component/element.proto";
+import "components_catalog_data/editor_react_component/actions.proto";
+import "components_catalog_data/editor_react_component/preset_item.proto";
+import "components_catalog_data/editor_react_component/editor_element_layout.proto";
+import "components_catalog_data/editor_react_component/archetype.proto";
+import "components_catalog_data/editor_react_component/state.proto";
+import "components_catalog_data/editor_react_component/display_filter.proto";
+import "components_catalog_data/editor_react_component/interactions.proto";
+import "components_catalog_data/editor_react_component/display_group.proto";
+import "components_catalog_data/editor_react_component/css_property.proto"; 
+import "components_catalog_data/editor_react_component/help_article.proto";
+
+message EditorElement {
+  // DOM Query selector for this element that we can use to find it when rendering it (preferably  a className)
+  string selector  = 1 [(.wix.api.minLength) = 4, (.wix.api.maxLength) = 50];
+  // Human friendly name on the editor stage when the component is in interaction with the user
+  string display_name = 2 [(.wix.api.maxLength) = 50, (.wix.api.translatable) = {
+    type: SHORT_TEXT
+  }];
+  // style-api of this element, a map of style-items where the key is the style-item name and the value is the style-item definition. These will be manifested as CSS vars in the scope of the component and prefixed with `--` 
+  map<string, StyleItem> style = 3 [deprecated = true, (.wix.api.field_deprecated) = {
+    replaced_by: "cssProperties or cssCustomProperties";
+    target_removal_date: "2025-08-01"
+  }];
+  // data-api of this element, a map of data-items where the key is the data-item name and the value is the data-item definition. These will be manifested as `props` for the component
+  map<string, DataItem> data = 4;
+  // elements-map of this element, a map of inner-elements where the key is the element name and the value is the element definition
+  map<string, ElementItem> elements =  5;
+  // Native actions specified for the component
+  Actions actions = 6;
+  // Custom actions specified for the component, allowing for flexibility beyond native actions
+  map<string, Action> custom_actions = 7;
+  // Component presets definition. Canonically useful for different layout or theming 
+  map<string, PresetItem> presets = 8;
+  reserved 9;
+  // Layout capabilities of the component
+  EditorElementLayout layout = 10;
+  // The Archetype this component adheres to, to be used for classification by AI models
+  ArchetypeEnum.Archetype archetype = 11;
+  // A map with definitions of states that this element can be edited in
+  map<string, ElementState> states = 12;
+  // Interactions of the component supports
+  Interactions interactions = 13;
+  // Display filters for the Element, used to define the visibility of inner / ref elements, style items, data items and custom actions in the editor
+  // The Element is the first in line to affect the display, Preset and State are after it
+  DisplayFilters display_filters = 14;
+  // Display groups for the element, used to group elements in the editor for better UX
+  map<string, DisplayGroupItem> display_groups = 15;
+  // A map of CSS properties that this element supports, where the key is the CSS property name and the value is the CSS property definition
+  map<string, CssPropertyItem> css_properties = 16;
+  // A map of CSS properties that this element supports, where the key is the CSS property name and the value is the CSS property definition
+  map<string, CssCustomPropertyItem> css_custom_properties = 17;
+  // A reference to a help article for this element
+  HelpArticle help_article = 18;
+}
+
