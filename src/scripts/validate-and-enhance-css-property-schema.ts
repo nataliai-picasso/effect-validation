@@ -134,12 +134,12 @@ function recreateCssPropertySchema(protoFilePath: string, outputSchemaPath: stri
 export const CssPropertiesSchema = Schema.Record({
   key: Schema.String,
   value: Schema.Struct({
-    statesDefaultValues: Schema.optional(Schema.Record({
+    statesDefaultValues: Schema.Record({
       key: Schema.String,
       value: Schema.Unknown
     }).pipe(Schema.filter((record) => Object.keys(record).length > 0, {
       message: () => "statesDefaultValues cannot be empty"
-    })))
+    }))
   })
 });
 
@@ -148,12 +148,12 @@ export const CssPropertiesSchema = Schema.Record({
 export const CssCustomPropertiesSchema = Schema.Record({
   key: Schema.String,
   value: Schema.Struct({
-    statesDefaultValues: Schema.optional(Schema.Record({
+    statesDefaultValues: Schema.Record({
       key: Schema.String,
       value: Schema.Unknown
     }).pipe(Schema.filter((record) => Object.keys(record).length > 0, {
       message: () => "statesDefaultValues cannot be empty"
-    })))
+    }))
   })
 });
 
