@@ -12,7 +12,7 @@ const createFilterObjectSchema = (filterKey: string) => {
       const hasHide = filter.hide && filter.hide.length > 0;
       
       if (hasShow && hasHide) {
-        throw new Error(`Field: .${filterKey}. Description: Show and hide filters are mutually exclusive - only one can be used at a time.`);
+        throw new Error(`.${filterKey}. Description: Show and hide filters are mutually exclusive - only one can be used at a time.`);
       }
       
       return true;
@@ -26,7 +26,7 @@ const createFilterObjectSchema = (filterKey: string) => {
       const hasHide = filter.hide && filter.hide.length > 0;
       
       if (!hasShow && !hasHide) {
-        throw new Error(`Field: .${filterKey}. Description: At least one of show or hide must be provided with values.`);
+        throw new Error(`.${filterKey}. Description: At least one of show or hide must be provided with values.`);
       }
       
       return true;
@@ -57,7 +57,7 @@ const ActionsFilterObjectSchema = createFilterObjectSchema('actions').pipe(
     );
     
     if (invalidActions.length > 0) {
-      throw new Error(`Field: .actions. Description: Invalid action names found: ${invalidActions.join(', ')}`);
+      throw new Error(`.actions. Description: Invalid action names found: ${invalidActions.join(', ')}`);
     }
     
     return true;
