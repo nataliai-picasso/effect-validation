@@ -46,7 +46,7 @@ $border-width: 2px;
 }
 
 .input-section {
-  width: 40%;
+  width: 50%;
   border-right: $border-width solid $border-color;
   background-color: $input-bg;
   flex-shrink: 0;
@@ -54,7 +54,7 @@ $border-width: 2px;
 }
 
 .output-section {
-  width: 60%;
+  width: 50%;
   background-color: $output-bg;
   flex-shrink: 0;
 }

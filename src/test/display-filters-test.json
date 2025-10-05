@@ -1,0 +1,73 @@
+{
+  "testCases": {
+    "valid": {
+      "description": "Valid displayFilters with show only",
+      "editorElement": {
+        "displayFilters": {
+          "data": {
+            "show": ["publicData", "userData"]
+          },
+          "actions": {
+            "hide": ["delete", "duplicate"]
+          }
+        }
+      }
+    },
+    "error1_mutualExclusivity": {
+      "description": "ERROR: Both show and hide present (violates mutual exclusivity)",
+      "editorElement": {
+        "displayFilters": {
+          "data": {
+            "show": ["publicData"],
+            "hide": ["internalData"]
+          }
+        }
+      }
+    },
+    "error2_requiredProperty": {
+      "description": "ERROR: Neither show nor hide present (violates required property)",
+      "editorElement": {
+        "displayFilters": {
+          "style": {}
+        }
+      }
+    },
+    "error2b_emptyArrays": {
+      "description": "ERROR: Empty arrays for both show and hide (violates required property)",
+      "editorElement": {
+        "displayFilters": {
+          "cssProperties": {
+            "show": [],
+            "hide": []
+          }
+        }
+      }
+    },
+    "error3_invalidActionNames": {
+      "description": "ERROR: Invalid action names in actions filter",
+      "editorElement": {
+        "displayFilters": {
+          "actions": {
+            "show": ["delete", "invalidAction", "anotherBadAction"]
+          }
+        }
+      }
+    },
+    "error_multiple": {
+      "description": "ERROR: Multiple validation errors at once",
+      "editorElement": {
+        "displayFilters": {
+          "data": {
+            "show": ["publicData"],
+            "hide": ["privateData"]
+          },
+          "actions": {
+            "show": ["delete", "badAction"]
+          },
+          "style": {}
+        }
+      }
+    }
+  }
+}
+
