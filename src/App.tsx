@@ -1,6 +1,6 @@
 import { useState, ChangeEvent } from 'react';
 import { Schema } from 'effect';
-import { EditorElementCss_propertiesSchema, EditorElementCss_custom_propertiesSchema } from './proto-based-schemas/editor_element.schema';
+import { CssPropertiesSchema, CssCustomPropertiesSchema } from './proto-based-schemas/css_property.schema';
 import { StatesSchema } from './proto-based-schemas/state.schema';
 import { DataSchema } from './proto-based-schemas/data.schema';
 import { DisplayFiltersSchema } from './schemas/display-filters.schema';
@@ -17,9 +17,9 @@ function App(): JSX.Element {
       case 'data':
         return Schema.decodeUnknownSync(DataSchema)(fieldValue);
       case 'cssProperties':
-        return Schema.decodeUnknownSync(EditorElementCss_propertiesSchema)(fieldValue);
+        return Schema.decodeUnknownSync(CssPropertiesSchema)(fieldValue);
       case 'cssCustomProperties':
-        return Schema.decodeUnknownSync(EditorElementCss_custom_propertiesSchema)(fieldValue);
+        return Schema.decodeUnknownSync(CssCustomPropertiesSchema)(fieldValue);
       case 'states':
         return Schema.decodeUnknownSync(StatesSchema)(fieldValue);
       case 'displayFilters':

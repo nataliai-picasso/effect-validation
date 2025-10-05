@@ -1,0 +1,46 @@
+// flynt-disable package-matches-structure
+syntax = "proto3";
+
+package com.wixpress.appservice.api;
+
+import "wix/api/validations.proto";
+import "wix/api/annotations.proto";
+
+// DisplayFilters is a collection of display filters that can be used to hide or show elements in the editor.
+// It is used to control the visibility of elements in the editor.
+// It is used to control the visibility of style items of elements in the editor.
+// It is used to control the visibility of data items of elements in the editor.
+// It is used to control the visibility of custom actions of elements in the editor.
+// The logical order of filtering is done from where the filter is defined.
+// Element takes first priority in narrowing the list, then the Preset and last is the State
+message DisplayFilters {
+  // DisplayFilter for elements, defines which elements to hide or show, uses the element key in the elements map, optional
+  DisplayFilter elements = 1;
+  // DisplayFilter for style, defines which style items to hide or show, uses the styleItem key in the style map, optional
+  DisplayFilter style = 2 [deprecated = true, (.wix.api.field_deprecated) = {
+    replaced_by: "cssProperties or cssCustomProperties";
+    target_removal_date: "2025-08-01"
+  }];
+  // DisplayFilter for data, defines which data items to hide or show, uses the dataItem key in the data map, optional
+  DisplayFilter data = 3;
+  // DisplayFilter for custom actions, defines which custom actions to hide or show, uses the customAction key in the customActions map, optional
+  DisplayFilter custom_actions = 4;
+  // DisplayFilter for actions, defines which actions to hide or show, uses the key in the action map, optional
+  DisplayFilter actions = 5;
+  // DisplayFilter for css-properties, defines which properties to hide or show in the editor, uses the css-property name, optional
+  DisplayFilter css_properties = 6;
+  // DisplayFilter for css-custom-properties, defines which css-custom-properties to hide or show in the editor, uses the key in the css-custom-properties map, optional
+  DisplayFilter css_custom_properties = 7;
+}
+
+
+// The logic of the display filter is to define the minimal requirement
+// You can only provide one of the two fields, `hide` or `show`, but not both.
+// hide: *All items* not listed here will be shown by the editor. Useful for hiding a small list of items
+// show: *Only items* listed here will be show by the editor. Useful for hiding a large list of items
+message DisplayFilter {
+  // Selected items to hide     
+  repeated string hide = 1 [(wix.api.maxSize) = 100, (wix.api.maxLength) = 80];
+  // Selected items to show
+  repeated string show = 2 [(wix.api.maxSize) = 100, (wix.api.maxLength) = 80];
+}
